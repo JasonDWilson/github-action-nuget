@@ -1,0 +1,29 @@
+name: .NET Core
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
+    - name: Nuget Spec
+      run: nuget spec
+    - name: Add repository to nuget spec
+      run: (gc <proj file name without csproj>.nuspec) -replace "</metadata>", "<repository type='git' url='<repository url>' /></metadata>" | Out-File -encoding ASCII <proj file name without csproj>.nuspec
+    - name: Nuget Pack
+      run: nuget pack -Prop Configuration=Release
+    - name: Nuget Push
+      run: dotnet nuget push *.nupkg -s https://nuget.pkg.github.com/<owner or organization>/index.json --skip-duplicate --api-key ${{ secrets.GITHUB_TOKEN }}
