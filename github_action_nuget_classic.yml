@@ -21,8 +21,16 @@ jobs:
       run: dotnet test --no-restore --verbosity normal
     - name: Nuget Spec
       run: nuget spec
+    - name: Add project Url to nuget spec
+      run: (gc <your proj>.nuspec) -replace "<projectUrl>http://project_url_here_or_delete_this_line/</projectUrl>", "<projectUrl><path to project></projectUrl>" | Out-File -encoding ASCII api-proxy-guardicore.nuspec
+    - name: Remove icon line
+      run: (gc <your proj>.nuspec) | Where-Object { $_ -notmatch 'icon_url_here_or_delete_this_line' } | Out-File -encoding ASCII <your proj>.nuspec
+    - nmae: remove release notes
+      run: (gc api-proxy-guardicore.nuspec) | Where-Object { $_ -notmatch 'Summary of changes' } | Out-File -encoding ASCII api-proxy-guardicore.nuspec
     - name: Add repository to nuget spec
       run: (gc <proj file name without csproj>.nuspec) -replace "</metadata>", "<repository type='git' url='<repository url>' /></metadata>" | Out-File -encoding ASCII <proj file name without csproj>.nuspec
+    - name: Populate Tags
+      run: (gc <your proj>.nuspec) -replace "<tags>Tag1 Tag2</tags>", "<tags><your tags></tags>" | Out-File -encoding ASCII <your porj>.nuspec
     - name: Nuget Pack
       run: nuget pack -Prop Configuration=Release
     - name: Nuget Push
